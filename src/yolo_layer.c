@@ -179,6 +179,12 @@ void forward_yolo_layer(const layer l, network net)
                     if (best_iou > l.ignore_thresh) {
                         l.delta[obj_index] = 0;
                     }
+                    // yolov3中在yolo层有一个truth_thresh参数，默认为1，且不需要修改。而在yolov3的源码src/yolo_layer.c中关于这个参数的
+                    // 使用是 if (best_iou > l.truth_thresh) ，
+                    // 然而best_iou也只是个IoU，永远也不会大于1，所以这段if判断的这段代码根本不会执行。这里的参数，作者论文中有提到，
+                    // 这是作者做的一种尝试，尝试使用双thresh机制，如同Faster RCNN中的双thresh机制，但是发现这种方法并没有取得有益效果，
+                    // 于是作者就放弃此方法，却没有删除源码，于是就保留下来。
+                    // 参考：https://blog.csdn.net/u012794824/article/details/103886167
                     if (best_iou > l.truth_thresh) {
                         l.delta[obj_index] = 1 - l.output[obj_index];
 
